@@ -28,10 +28,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include <QtCore/QStandardPaths>
 #include <QtCore/QTimer>
 
-// AyuGram includes
-#include "ayu/ayu_settings.h"
-
-
 namespace {
 
 constexpr auto kDefaultProxyPort = 80;
@@ -321,17 +317,7 @@ LastCrashedWindow::LastCrashedWindow(
 , _launch(std::move(launch)) {
 	excludeReportUsername();
 
-#ifndef TDESKTOP_DISABLE_AUTOUPDATE
-	const auto &settings = AyuSettings::getInstance();
-	if (!settings.crashReporting()) {
-#else
-	if (true) {
-#endif
-		_sendingState = SendingNoReport;
-	} else if (Core::OpenGLLastCheckFailed()) {
-		// Nothing we can do right now with graphics driver crashes in GL.
-		_sendingState = SendingNoReport;
-	}
+	_sendingState = SendingNoReport;
 	if (_sendingState != SendingNoReport) {
 		qint64 dumpsize = 0;
 		QString dumpspath = cWorkingDir() + u"tdata/dumps"_q;
@@ -589,10 +575,7 @@ void LastCrashedWindow::sendReport() {
 		_sendReply = nullptr;
 	}
 
-	checkingFinished();
-
-	_pleaseSendReport.setText(u"Sending crash report..."_q);
-	_sendingState = SendingProgress;
+	_sendingState = SendingNoReport;
 	_reportShown = false;
 	updateControls();
 }
@@ -607,75 +590,6 @@ QString LastCrashedWindow::minidumpFileName() {
 }
 
 void LastCrashedWindow::checkingFinished() {
-	if (_sendReply) return;
-
-	auto multipart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
-
-	{
-		QString version = getReportField(qstr("version"), qstr("Version:"));
-		if (!version.isEmpty()) {
-			const auto sentryVersion = QString("ayugram-desktop@%1").arg(version);
-
-			QHttpPart reportPart;
-			reportPart.setHeader(QNetworkRequest::ContentDispositionHeader,
-			                     QVariant(u"form-data; name=\"%1\""_q.arg("sentry[release]")));
-			reportPart.setBody(sentryVersion.toUtf8());
-			multipart->append(reportPart);
-		}
-	}
-
-	{
-		QString dumpFile = minidumpFileName();
-		if (!dumpFile.isEmpty()) {
-			const auto dumpId = dumpFile.replace(".dmp", "");
-
-			QHttpPart reportPart;
-			reportPart.setHeader(QNetworkRequest::ContentDispositionHeader,
-			                     QVariant(u"form-data; name=\"%1\""_q.arg("sentry[tags][dump-id]")));
-			reportPart.setBody(dumpId.toUtf8());
-			multipart->append(reportPart);
-		}
-	}
-
-	QHttpPart reportPart;
-	reportPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
-	reportPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"report\"; filename=\"report.txt\""));
-	reportPart.setBody(getCrashReportRaw());
-	multipart->append(reportPart);
-
-	QString dmpName = minidumpFileName();
-	if (!dmpName.isEmpty()) {
-		QFile file(_minidumpFull);
-		if (file.open(QIODevice::ReadOnly)) {
-			QByteArray minidump = file.readAll();
-			file.close();
-
-			QHttpPart dumpPart;
-			dumpPart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/octet-stream"));
-			dumpPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant(u"form-data; name=\"upload_file_minidump\"; filename=\"%1\""_q.arg(dmpName)));
-			dumpPart.setBody(minidump);
-			multipart->append(dumpPart);
-
-			_minidump.setText(u"+ %1 (%2 KB)"_q.arg(dmpName).arg(minidump.size() / 1024));
-		}
-	}
-
-	_sendReply = _sendManager.post(QNetworkRequest(u"https://sentry.radolyn.com/api/2/minidump/?sentry_key=cad638b2ec4a692e57c3dcc4af1508bf"_q), multipart);
-	multipart->setParent(_sendReply);
-
-	connect(
-		_sendReply,
-		&QNetworkReply::errorOccurred,
-		[=](QNetworkReply::NetworkError code) { sendingError(code); });
-	connect(
-		_sendReply,
-		&QNetworkReply::finished,
-		[=] { sendingFinished(); });
-	connect(
-		_sendReply,
-		&QNetworkReply::uploadProgress,
-		[=](qint64 sent, qint64 total) { sendingProgress(sent, total); });
-
 	updateControls();
 }
 

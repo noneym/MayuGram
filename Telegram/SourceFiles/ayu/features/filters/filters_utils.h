@@ -12,7 +12,6 @@
 #include "history/history_item_components.h"
 
 #include <QString>
-#include <QtNetwork/QNetworkReply>
 
 struct ApplyChanges
 {
@@ -44,24 +43,16 @@ public:
 	FilterUtils(FilterUtils &&) = delete;
 	FilterUtils &operator=(FilterUtils &&) = delete;
 
-	void importFromLink(const QString &link);
 	void importFromJson(const QByteArray &json);
 
-	void publishFilters();
 	static QString exportFilters();
 
 	static QString extractAllText(not_null<HistoryItem*> item, const Data::Group *group);
 
 private:
-	FilterUtils()
-		: _manager(std::make_unique<QNetworkAccessManager>()) {
-	}
-
-	void handleResponse(const QByteArray &response);
-	void gotFailure(const QNetworkReply::NetworkError &error);
+	FilterUtils() = default;
 
 	ApplyChanges prepareChanges(const QJsonObject &response);
 	void applyChanges(const ApplyChanges &changes);
 
-	std::unique_ptr<QNetworkAccessManager> _manager = nullptr;
 };

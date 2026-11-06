@@ -143,8 +143,6 @@ set(ayugram_files
         ayu/ui/utils/color_utils.h
         ayu/ui/utils/palette.cpp
         ayu/ui/utils/palette.h
-        ayu/ui/utils/itunes_search.cpp
-        ayu/ui/utils/itunes_search.h
         ayu/ui/settings/ayu_builder.cpp
         ayu/ui/settings/ayu_builder.h
         ayu/ui/settings/settings_appearance.cpp
@@ -235,10 +233,6 @@ set(ayugram_files
         ayu/features/translator/ayu_translate_provider.h
         ayu/features/translator/html_parser.cpp
         ayu/features/translator/html_parser.h
-        ayu/features/translator/implementations/google.cpp
-        ayu/features/translator/implementations/google.h
-        ayu/features/translator/implementations/yandex.cpp
-        ayu/features/translator/implementations/yandex.h
         ayu/features/translator/implementations/base.cpp
         ayu/features/translator/implementations/base.h
         ayu/features/filters/filters_controller.cpp

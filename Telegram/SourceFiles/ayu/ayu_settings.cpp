@@ -509,8 +509,10 @@ void AyuSettings::validate() {
 	validateEnum(_showAddFilterInContextMenu, defaults._showAddFilterInContextMenu);
 
 	validateEnum(_translationProvider, defaults._translationProvider, 3);
-	if ((_translationProvider.current() == TranslationProvider::Native)
-		&& !Platform::IsTranslateProviderAvailable()) {
+	if ((_translationProvider.current() == TranslationProvider::Google)
+		|| (_translationProvider.current() == TranslationProvider::Yandex)
+		|| ((_translationProvider.current() == TranslationProvider::Native)
+			&& !Platform::IsTranslateProviderAvailable())) {
 		_translationProvider = defaults._translationProvider.current();
 		modified = true;
 	}

@@ -43,9 +43,6 @@
 #include <QString>
 #include <thread>
 #include <vector>
-#include <QtNetwork/QHttpPart>
-#include <QtNetwork/QNetworkAccessManager>
-#include <QtNetwork/QNetworkReply>
 
 constexpr auto BACKUP_VERSION = 2;
 
@@ -288,108 +285,6 @@ void ResolveFilterBackupPeers(const std::vector<QString> &peerHints) {
 			}
 		}
 	});
-}
-
-void FilterUtils::importFromLink(const QString &link) {
-	if (link.isEmpty()) {
-		Ui::Toast::Show(tr::ayu_FiltersToastFailFetch(tr::now));
-		return;
-	}
-
-	const auto request = QNetworkRequest(QUrl(link));
-	const auto reply = _manager->get(request);
-	const auto failed = std::make_shared<bool>(false);
-
-	connect(
-		reply,
-		&QNetworkReply::finished,
-		this,
-		[=]
-		{
-			if (*failed) {
-				reply->deleteLater();
-				return;
-			}
-
-			const auto responseData = reply->readAll();
-
-			const auto jsonString = QString::fromUtf8(responseData);
-
-			if (jsonString.isNull()) {
-				LOG(("FilterUtils: Invalid response."));
-				Ui::Toast::Show(tr::ayu_FiltersToastFailImport(tr::now));
-
-				reply->deleteLater();
-				return;
-			}
-
-			handleResponse(jsonString.toUtf8());
-			reply->deleteLater();
-		});
-
-	connect(
-		reply,
-		&QNetworkReply::errorOccurred,
-		this,
-		[=](QNetworkReply::NetworkError e)
-		{
-			if (*failed) {
-				return;
-			}
-			*failed = true;
-			gotFailure(e);
-			reply->deleteLater();
-		});
-}
-
-void FilterUtils::publishFilters() {
-	const auto exported = exportFilters();
-
-	auto multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
-
-	QHttpPart contentPart;
-	contentPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"content\""));
-	contentPart.setBody(exported.toUtf8());
-
-	QHttpPart syntaxPart;
-	syntaxPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"syntax\""));
-	syntaxPart.setBody("json");
-
-	QHttpPart titlePart;
-	titlePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"title\""));
-	titlePart.setBody("AyuGram Filters");
-
-	multiPart->append(contentPart);
-	multiPart->append(syntaxPart);
-	multiPart->append(titlePart);
-
-	QNetworkRequest request(QUrl("https://dpaste.com/api/v2/"));
-
-	const auto reply = _manager->post(request, multiPart);
-	multiPart->setParent(reply);
-
-	connect(
-		reply,
-		&QNetworkReply::finished,
-		this,
-		[=]
-		{
-			const auto error = reply->error();
-			const auto location = reply->header(QNetworkRequest::LocationHeader);
-
-			if (error == QNetworkReply::NoError && location.isValid()) {
-				auto url = location.toString();
-				url.append(".txt");
-				QGuiApplication::clipboard()->setText(url);
-
-				Ui::Toast::Show(tr::lng_stickers_copied(tr::now));
-			} else {
-				LOG(("Failed to publish filters to dpaste, error: %1").arg(reply->errorString()));
-
-				Ui::Toast::Show(tr::ayu_FiltersToastFailPublish(tr::now));
-			}
-			reply->deleteLater();
-		});
 }
 
 void FilterUtils::importFromJson(const QByteArray &json) {
@@ -716,20 +611,6 @@ QString FilterUtils::extractAllText(const not_null<HistoryItem*> item, const Dat
 	text.append("\n").append("<type>").append(QString::number(typeOfMessage(item))).append("</type>");
 
 	return text;
-}
-
-void FilterUtils::handleResponse(const QByteArray &response) {
-	try {
-		importFromJson(response);
-	} catch (...) {
-		LOG(("FilterUtils: Failed to apply response"));
-		Ui::Toast::Show(tr::ayu_FiltersToastFailImport(tr::now));
-	}
-}
-
-void FilterUtils::gotFailure(const QNetworkReply::NetworkError &error) {
-	LOG(("FilterUtils: Error %1").arg(error));
-	Ui::Toast::Show(tr::ayu_FiltersToastFailFetch(tr::now));
 }
 
 ApplyChanges FilterUtils::prepareChanges(const QJsonObject &root) {

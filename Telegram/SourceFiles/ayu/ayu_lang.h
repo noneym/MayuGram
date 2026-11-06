@@ -6,7 +6,7 @@
 // Copyright @Radolyn, 2026
 #pragma once
 
-#include <QtNetwork/QNetworkReply>
+#include <QtCore/QJsonDocument>
 #include <QtXml/QDomDocument>
 
 class AyuLanguage : public QObject
@@ -19,24 +19,14 @@ public:
 	static void init();
 	static AyuLanguage *instance;
 
-	void fetchLanguage(const QString &id, const QString &baseId);
 	void applyLanguageJson(QJsonDocument doc);
-
-public Q_SLOTS:
-	void fetchFinished();
-	void fetchError(QNetworkReply::NetworkError e);
 
 private:
 	AyuLanguage();
 	~AyuLanguage() override = default;
 
 	void loadCachedLanguage();
-	void saveCachedLanguage(const QByteArray &json, const QString &langId);
 	[[nodiscard]] QString getCacheDir() const;
 	[[nodiscard]] QString getCachePath(const QString &langId) const;
 
-	QNetworkAccessManager networkManager;
-	QNetworkReply *_chkReply = nullptr;
-	bool needFallback = false;
-	QString _currentLangId;
 };

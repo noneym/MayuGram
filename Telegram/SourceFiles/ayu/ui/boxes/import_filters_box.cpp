@@ -17,7 +17,6 @@
 #include "ui/toast/toast.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/checkbox.h"
-#include "ui/widgets/fields/input_field.h"
 #include "ui/wrap/slide_wrap.h"
 
 #include <QtGui/QClipboard>
@@ -42,77 +41,30 @@ void FillImportFiltersBox(not_null<Ui::GenericBox*> box, bool import) {
 			std::move(wrap),
 			QMargins(0, skip, 0, skip)));
 
-	Ui::InputField *importURLField = nullptr;
-	Ui::SlideWrap<Ui::VerticalLayout> *importURLWrap = nullptr;
-	const auto clipboardText = QGuiApplication::clipboard()->text().trimmed();
-	const auto clipboardHasUrl = import && clipboardText.startsWith("http");
-
-	const auto intoURL = std::make_shared<RadioenumGroup<bool>>(clipboardHasUrl);
-	const auto addOption = [&](bool value, const QString &text)
-	{
-		inner->add(
-			object_ptr<Ui::Radioenum<bool>>(
-				inner,
-				intoURL,
-				value,
-				text,
-				st::settingsSendType),
-			st::settingsSendTypePadding);
-
-		if (import && value) {
-			importURLWrap = inner->add(
-				object_ptr<Ui::SlideWrap<Ui::VerticalLayout>>(
-					inner,
-					object_ptr<Ui::VerticalLayout>(inner),
-					st::giveawayGiftCodeBox.buttonPadding
-				)
-			);
-			importURLField = importURLWrap->entity()->add(
-				object_ptr<Ui::InputField>(
-					container,
-					st::defaultInputField,
-					rpl::single(QString("URL")),
-					clipboardHasUrl ? clipboardText : QString()
-				)
-			);
-			if (!clipboardHasUrl) {
-				importURLWrap->hide(anim::type::instant);
-			}
-		}
-	};
-	addOption(false, import ? tr::ayu_FiltersImportClipboard(tr::now) : tr::ayu_FiltersExportClipboard(tr::now));
-	addOption(true, import ? tr::ayu_FiltersImportURL(tr::now) : tr::ayu_FiltersExportURL(tr::now));
-
-	intoURL->setChangedCallback([=](bool value)
-	{
-		if (import) {
-			importURLWrap->toggle(value, anim::type::normal);
-		}
-	});
+	const auto group = std::make_shared<RadioenumGroup<bool>>(false);
+	inner->add(
+		object_ptr<Ui::Radioenum<bool>>(
+			inner,
+			group,
+			false,
+			import
+				? tr::ayu_FiltersImportClipboard(tr::now)
+				: tr::ayu_FiltersExportClipboard(tr::now),
+			st::settingsSendType),
+		st::settingsSendTypePadding);
 
 	const auto actionButton = box->addButton(
 		import ? tr::ayu_FiltersMenuImport() : tr::ayu_FiltersMenuExport(),
 		[=]
 		{
-			const auto isURL = intoURL.get()->current();
-
 			if (import) {
-				if (isURL) {
-					FilterUtils::getInstance().importFromLink(
-						importURLField->getLastText().trimmed());
-				} else {
-					FilterUtils::getInstance().importFromJson(
-						QGuiApplication::clipboard()->text().toUtf8());
-				}
+				FilterUtils::getInstance().importFromJson(
+					QGuiApplication::clipboard()->text().toUtf8());
 			} else {
-				if (isURL) {
-					FilterUtils::getInstance().publishFilters();
-				} else {
-					const auto data = FilterUtils::getInstance().exportFilters();
-					QGuiApplication::clipboard()->setText(data);
+				const auto data = FilterUtils::getInstance().exportFilters();
+				QGuiApplication::clipboard()->setText(data);
 
-					Toast::Show(tr::lng_text_copied(tr::now));
-				}
+				Toast::Show(tr::lng_text_copied(tr::now));
 			}
 			box->closeBox();
 		});

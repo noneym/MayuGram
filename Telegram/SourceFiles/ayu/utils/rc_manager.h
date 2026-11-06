@@ -8,8 +8,6 @@
 
 #include "ayu/data/entities.h"
 
-#include <QtNetwork/QNetworkReply>
-
 extern std::unordered_set<ID> default_developers;
 extern std::unordered_set<ID> default_channels;
 
@@ -79,17 +77,6 @@ public:
 
 private:
 	RCManager() = default;
-	~RCManager();
-
-	void makeRequest();
-	void sendRequest();
-	bool tryRetryWithExteraFallback();
-
-	void gotResponse();
-	void gotFailure(QNetworkReply::NetworkError e);
-	void clearSentRequest();
-	bool handleResponse(const QByteArray &response);
-	bool applyResponse(const QByteArray &response);
 
 	bool initialized = false;
 
@@ -103,12 +90,5 @@ private:
 	QString _donateAmountUsd = QString("5.00");
 	QString _donateAmountTon = QString("3.50");
 	QString _donateAmountRub = QString("386");
-
-	QTimer* _timer = nullptr;
-
-	std::unique_ptr<QNetworkAccessManager> _manager = nullptr;
-	QNetworkReply *_reply = nullptr;
-	bool _useExteraFallback = false;
-	bool _retryAttempted = false;
 
 };

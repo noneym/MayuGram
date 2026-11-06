@@ -8,7 +8,6 @@
 
 #include "ayu/ayu_settings.h"
 #include "ayu/ui/utils/color_utils.h"
-#include "ayu/ui/utils/itunes_search.h"
 #include "ayu/ui/utils/palette.h"
 #include "data/data_document.h"
 #include "data/data_document_media.h"
@@ -249,7 +248,7 @@ void AyuMusicButton::downloadAndMakeCover(FullMsgId msgId) {
 void AyuMusicButton::makeCover() {
 	const auto weak = base::make_weak(this);
 	crl::async(
-		[=, mediaView = _mediaView, performerText = _performerText, titleText = _titleText, overrideBg = _overrideBg]()
+		[=, mediaView = _mediaView, overrideBg = _overrideBg]()
 		{
 			const auto &settings = AyuSettings::getInstance();
 			const auto &font = st::infoMusicButtonTitle.style.font;
@@ -257,20 +256,6 @@ void AyuMusicButton::makeCover() {
 			const auto size = font->height + skip + font->height;
 
 			auto cover = GetCurrentCover(mediaView, QSize(size, size));
-
-			if (cover.noCover) {
-				const auto pix = Ayu::Ui::Itunes::FetchCover(performerText, titleText, size);
-				if (!pix.isNull()) {
-					const auto img = Image(pix.toImage());
-					const auto args = Images::PrepareArgs{
-						.options = Images::Option::RoundSmall,
-						.outer = QSize(size, size),
-					};
-					cover.pixToDraw = img.pix(QSize(size, size), args);
-					cover.pixToBg = pix;
-					cover.noCover = false;
-				}
-			}
 
 			QColor bgColor;
 			if (cover.noCover || !settings.adaptiveCoverColor()) {

@@ -1404,7 +1404,7 @@ void AddRegistrationOrCreationButton(
 		not_null<PeerData*> peer,
 		TextWithLabel &idInfo,
 		const auto &fitLabelToButton) {
-	if (peer->isBot() || peer->isServiceUser()) {
+	if (peer->isUser()) {
 		return;
 	}
 

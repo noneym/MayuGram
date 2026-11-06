@@ -1,4 +1,27 @@
-# AyuGram
+# MayuGram
+
+**MayuGram** (Clean AyuGram), [AyuGram Desktop](https://github.com/AyuGram/AyuGramDesktop)'un geliştirici sunucularıyla hiçbir otomatik bağlantı kurmayan bir fork'udur. Uygulama yalnızca Telegram sunucularıyla iletişim kurar.
+
+Orijinal AyuGram'dan kaldırılanlar:
+
+| Kaldırılan | Ne yapıyordu |
+| --- | --- |
+| Uzaktan yapılandırma (RC Manager) | Saatte bir `update.ayugram.one` ve `api.exteragram.app` adreslerinden liste indiriyordu |
+| Çökme raporu gönderimi | Rapor ve bellek dökümünü `sentry.radolyn.com` adresine yüklüyordu; ayarlardaki düğmesi de kaldırıldı |
+| Otomatik güncelleyici | `update.ayugram.one` ve Telegram kanalından güncelleme dosyası indirip çalıştırıyordu |
+| AyuGram dil paketi indirmesi | `cdn.jsdelivr.net/gh/AyuGram/Languages` adresinden çeviri indiriyordu; önbellekteki dosyalar kullanılmaya devam eder |
+| Kayıt tarihi sorgusu | Bakılan kullanıcının ID'sini `@ayugrambot` / `@exteraAuthBot` botlarına gönderiyordu; profildeki düğme kullanıcılar için gizlendi |
+| Müzik kapağı araması | Profildeki şarkıların adını `itunes.apple.com` adresine gönderiyordu |
+| Google / Yandex çevirmeni | Çevrilecek mesaj metnini Google ve Yandex sunucularına gönderiyordu; çeviri artık yalnızca Telegram'ın kendi çevirmeniyle yapılır |
+| Filtreleri linkle paylaşma / içe aktarma | Filtre listesini `dpaste.com`'a yüklüyor, verilen herhangi bir linkten indiriyordu; artık yalnızca panoya kopyalama ve panodan içe aktarma var |
+
+Güncellemeler otomatik gelmez; yeni sürüm için bu depoyu kendiniz güncelleyip derleyin.
+
+Telegram Desktop'un kendisinden gelen ve Telegram'ın normal çalışmasının parçası olan bağlantılar bilerek bırakıldı: Telegram engelliyse bağlantı adresini bulmak için kullanılan DNS-over-HTTPS / yedek yapılandırma istekleri, ödeme sağlayıcıları (Stripe, SmartGlocal; yalnızca ödeme yaparken), konum gönderirken adres arama (Mapbox), mesajdaki linkler ve bağlantı önizlemeleri.
+
+*English:* MayuGram (Clean AyuGram) is a fork of AyuGram Desktop with every non-Telegram endpoint added by AyuGram removed (remote config, crash report upload, auto-updater, language pack download, registration-date bots, iTunes cover lookup, Google/Yandex translators, dpaste filter sharing). The app talks only to Telegram, apart from the network features that come from upstream Telegram Desktop itself.
+
+---
 
 ![AyuGram Logo](.github/AyuGram.png) ![AyuChan](.github/AyuChan.png)
 

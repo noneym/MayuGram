@@ -7,8 +7,6 @@
 #include "ayu/features/translator/ayu_translator.h"
 
 #include "api/api_text_entities.h"
-#include "ayu/features/translator/implementations/google.h"
-#include "ayu/features/translator/implementations/yandex.h"
 #include "data/data_peer.h"
 #include "data/data_session.h"
 #include "history/history_item.h"
@@ -23,16 +21,7 @@
 namespace Ayu::Translator {
 namespace {
 
-BaseTranslator *translatorForProvider(TranslationProvider provider) {
-	switch (provider) {
-	case TranslationProvider::Yandex:
-		return &YandexTranslator::instance();
-	case TranslationProvider::Google:
-		return &GoogleTranslator::instance();
-	case TranslationProvider::Telegram:
-	case TranslationProvider::Native:
-		return nullptr;
-	}
+BaseTranslator *translatorForProvider(TranslationProvider) {
 	return nullptr;
 }
 
